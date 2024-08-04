@@ -15,8 +15,8 @@ def main():
         downloader.download_audio()
     elif choice == "b":
         # Create threads
-        video_thread = threading.Thread(target=downloader.download_video())
-        audio_thread = threading.Thread(target=downloader.download_audio())
+        video_thread = threading.Thread(target=downloader.download_video)
+        audio_thread = threading.Thread(target=downloader.download_audio)
 
         # Start threads
         video_thread.start()
