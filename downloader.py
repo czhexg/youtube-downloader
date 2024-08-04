@@ -42,3 +42,23 @@ class YouTubeDownloader:
             )
         else:
             print("No video stream found.")
+
+    def download_audio(self, filename=None):
+        """Downloads the highest quality audio stream"""
+        if not filename:
+            filename = f"{self.title}_audio.mp3"
+        audio_stream = (
+            self.yt.streams.filter(
+                progressive=False, file_extension="mp4", only_audio=True
+            )
+            .order_by("abr")
+            .desc()
+            .first()
+        )
+        if audio_stream:
+            audio_stream.download(output_path=self.audio_path, filename=filename)
+            print(
+                f"Audio downloaded successfully: {os.path.join(self.audio_path, filename)}"
+            )
+        else:
+            print("No audio stream found.")
