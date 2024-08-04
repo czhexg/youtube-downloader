@@ -19,3 +19,26 @@ class YouTubeDownloader:
         os.makedirs(self.video_path, exist_ok=True)
         os.makedirs(self.audio_path, exist_ok=True)
         os.makedirs(self.combined_path, exist_ok=True)
+
+    def download_video(self, filename=None):
+        """Downloads the highest resolution video stream with avc1 codec"""
+        if not filename:
+            filename = f"{self.title}_video.mp4"
+        video_stream = (
+            self.yt.streams.filter(
+                progressive=False,
+                file_extension="mp4",
+                only_video=True,
+                custom_filter_functions=[lambda s: s.video_codec.startswith("avc1")],
+            )
+            .order_by("resolution")
+            .desc()
+            .first()
+        )
+        if video_stream:
+            video_stream.download(output_path=self.video_path, filename=filename)
+            print(
+                f"Video downloaded successfully: {os.path.join(self.video_path, filename)}"
+            )
+        else:
+            print("No video stream found.")
