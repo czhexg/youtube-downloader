@@ -25,6 +25,13 @@ def main():
         # Wait for both threads to complete
         video_thread.join()
         audio_thread.join()
+
+        # Combine audio and video
+        downloader.combine_audio_video(
+            f"{downloader.title}_video.mp4",
+            f"{downloader.title}_audio.mp3",
+            f"{downloader.title}_combined.mp4",
+        )
     else:
         print("Invalid choice. Exiting.")
 
