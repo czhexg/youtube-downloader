@@ -7,7 +7,7 @@ def main():
     url = input("Enter the YouTube video URL: ")
     downloader = YouTubeDownloader(url)
 
-    choice = input("Download (v)ideo, (a)udio, or (b)oth? ").lower()
+    choice = input("Download (v)ideo, (a)udio, (b)oth, or (c)ombined? ").lower()
 
     if choice == "v":
         downloader.download_video()
@@ -15,13 +15,14 @@ def main():
         downloader.download_audio()
     elif choice == "b":
         downloader.download_both()
+    elif choice == "c":
+        downloader.download_both()
 
         # Combine audio and video
-        downloader.combine_audio_video(
-            f"{downloader.title}_video.mp4",
-            f"{downloader.title}_audio.mp3",
-            f"{downloader.title}_combined.mp4",
-        )
+        video_filename = f"{downloader.yt.title}_video.mp4"
+        audio_filename = f"{downloader.yt.title}_audio.mp3"
+        output_filename = f"{downloader.yt.title}_combined.mp4"
+        downloader.combine_audio_video(video_filename, audio_filename, output_filename)
     else:
         print("Invalid choice. Exiting.")
 
