@@ -9,7 +9,7 @@ def main():
 
     choice = input("Download (v)ideo, (a)udio, (b)oth, or (c)ombined? ").lower()
 
-    downloader.handle_download(downloader, choice)
+    downloader.handle_download(choice)
 
 
 if __name__ == "__main__":
