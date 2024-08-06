@@ -1,30 +1,24 @@
 from downloader import YouTubeDownloader
-
-import threading
+from pytubefix import Playlist
 
 
 def main():
-    url = input("Enter the YouTube video URL: ")
-    downloader = YouTubeDownloader(url)
+    url = input("Enter the YouTube video or playlist URL: ")
 
-    choice = input("Download (v)ideo, (a)udio, (b)oth, or (c)ombined? ").lower()
+    if "playlist" in url.lower():
+        playlist = Playlist(url)
+        choice = input(
+            "Download (v)ideo, (a)udio, (b)oth, or (c)ombined for all videos in the playlist? "
+        ).lower()
 
-    if choice == "v":
-        downloader.download_video()
-    elif choice == "a":
-        downloader.download_audio()
-    elif choice == "b":
-        downloader.download_both()
-    elif choice == "c":
-        downloader.download_both()
+        for video in playlist.videos:
+            downloader = YouTubeDownloader(video.watch_url)
+            downloader.handle_download(choice)
 
-        # Combine audio and video
-        video_filename = f"{downloader.yt.title}_video.mp4"
-        audio_filename = f"{downloader.yt.title}_audio.mp3"
-        output_filename = f"{downloader.yt.title}_combined.mp4"
-        downloader.combine_audio_video(video_filename, audio_filename, output_filename)
     else:
-        print("Invalid choice. Exiting.")
+        downloader = YouTubeDownloader(url)
+        choice = input("Download (v)ideo, (a)udio, (b)oth, or (c)ombined? ").lower()
+        downloader.handle_download(choice)
 
 
 if __name__ == "__main__":
