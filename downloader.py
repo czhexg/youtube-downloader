@@ -99,6 +99,25 @@ class YouTubeDownloader:
         video_thread.join()
         audio_thread.join()
 
+    def handle_download(self, choice: str):
+        """Handles the user's download choice"""
+        if choice == "v":
+            self.download_video()
+        elif choice == "a":
+            self.download_audio()
+        elif choice == "b":
+            self.download_both()
+        elif choice == "c":
+            self.download_both()
+
+            # Combine audio and video
+            video_filename = f"{self.title}_video.mp4"
+            audio_filename = f"{self.title}_audio.mp3"
+            output_filename = f"{self.title}_combined.mp4"
+            self.combine_audio_video(video_filename, audio_filename, output_filename)
+        else:
+            print("Invalid choice. Exiting.")
+
     def combine_audio_video(
         self, video_filename: str, audio_filename: str, output_filename: str
     ):
