@@ -61,3 +61,25 @@ class Audio(Content):
     def info(self):
         super().info()
         print(f"Bitrate: {self.bitrate}")
+
+
+class CombinedContent(Content):
+    def __init__(
+        self,
+        title,
+        duration,
+        creator,
+        filepath,
+        description,
+        thumbnail,
+        resolution,
+        bitrate,
+    ):
+        super().__init__(title, duration, creator, filepath, description, thumbnail)
+        self.resolution = resolution
+        self.bitrate = bitrate
+        self.content_type = ContentType.COMBINED
+
+    def info(self):
+        super().info()
+        print(f"Resolution: {self.resolution}")
