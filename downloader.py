@@ -1,11 +1,16 @@
+# External imports
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from pytubefix.helpers import safe_filename
 import ffmpeg
 
+# Standard library imports
 import os
 import time
 import threading
+
+# Local imports
+from content import Video, Audio
 
 
 class YouTubeDownloader:
@@ -37,7 +42,7 @@ class YouTubeDownloader:
                 time.sleep(1)
         raise Exception(f"Failed to download after {self.retries} attempts.")
 
-    def download_video(self, filename: str = None) -> None:
+    def download_video(self, filename: str = None) -> Video:
         """Downloads the highest resolution video stream with avc1 codec"""
         if not filename:
             filename = f"{self.title}_video.mp4"
@@ -58,12 +63,22 @@ class YouTubeDownloader:
                 print(
                     f"Video downloaded successfully: {os.path.join(self.video_path, filename)}"
                 )
+                return Video(
+                    title=self.title,
+                    description=self.yt.description,
+                    creator=self.yt.author,
+                    duration=self.yt.length,
+                    filepath=os.path.join(self.video_path, filename),
+                    thumbnail=self.yt.thumbnail_url,
+                    resolution=video_stream.resolution,
+                )
+
             except Exception as e:
                 print(f"Failed to download video: {e}")
         else:
             print("No video stream found.")
 
-    def download_audio(self, filename: str = None) -> None:
+    def download_audio(self, filename: str = None) -> Audio:
         """Downloads the highest quality audio stream"""
         if not filename:
             filename = f"{self.title}_audio.mp3"
@@ -81,6 +96,17 @@ class YouTubeDownloader:
                 print(
                     f"Audio downloaded successfully: {os.path.join(self.audio_path, filename)}"
                 )
+
+                return Audio(
+                    title=self.title,
+                    description=self.yt.description,
+                    creator=self.yt.author,
+                    duration=self.yt.length,
+                    filepath=os.path.join(self.audio_path, filename),
+                    thumbnail=self.yt.thumbnail_url,
+                    bitrate=audio_stream.abr,
+                )
+
             except Exception as e:
                 print(f"Failed to download audio: {e}")
         else:
