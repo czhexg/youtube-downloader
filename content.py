@@ -14,6 +14,11 @@ class Content(ABC):
         description: str = None,
         thumbnail: str = None,
     ):
+        if self.__class__ is Content:
+            raise TypeError(
+                "Content is an abstract class and cannot be instantiated directly."
+            )
+
         self.title = title
         self.duration = duration  # duration in seconds
         self.description = description
