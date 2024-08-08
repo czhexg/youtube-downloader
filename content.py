@@ -9,7 +9,7 @@ class Content(ABC):
         title: str,
         duration: int,
         creator: str,
-        filename: str,
+        filepath: str,
         content_type: ContentType = None,
         description: str = None,
         thumbnail: str = None,
@@ -18,7 +18,7 @@ class Content(ABC):
         self.duration = duration  # duration in seconds
         self.description = description
         self.creator = creator
-        self.filename = filename
+        self.filepath = filepath
         self.thumbnail = thumbnail
         self.content_type = content_type
 
@@ -28,15 +28,15 @@ class Content(ABC):
         print(f"Creator: {self.creator}")
         print(f"Description: {self.description}")
         print(f"Thumbnail URL: {self.thumbnail}")
-        print(f"Filename: {self.filename}")
+        print(f"Filepath: {self.filepath}")
         print(f"Content Type: {self.content_type.value}")
 
 
 class Video(Content):
     def __init__(
-        self, title, duration, creator, filename, description, thumbnail, resolution
+        self, title, duration, creator, filepath, description, thumbnail, resolution
     ):
-        super().__init__(title, duration, creator, filename, description, thumbnail)
+        super().__init__(title, duration, creator, filepath, description, thumbnail)
         self.resolution = resolution
         self.content_type = ContentType.VIDEO
 
@@ -47,9 +47,9 @@ class Video(Content):
 
 class Audio(Content):
     def __init__(
-        self, title, duration, creator, filename, description, thumbnail, bitrate
+        self, title, duration, creator, filepath, description, thumbnail, bitrate
     ):
-        super().__init__(title, duration, creator, filename, description, thumbnail)
+        super().__init__(title, duration, creator, filepath, description, thumbnail)
         self.bitrate = bitrate
         self.content_type = ContentType.AUDIO
 
