@@ -3,7 +3,7 @@ import ffmpeg
 import os
 
 from constants import ContentType
-from content import Content
+from content import Content, Video, Audio, CombinedContent
 
 
 class ContentProcessor:
@@ -12,10 +12,10 @@ class ContentProcessor:
         self.audio_path = audio_path
         self.combined_path = combined_path
 
-    def combine_audio_video(
-        self, video_filename: str, audio_filename: str, output_filename: str
-    ):
+    def combine_audio_video(self, video: Video, audio: Audio, output_filename: str):
         """Combines audio and video files into a single file"""
+        video_filename = video.filename
+        audio_filename = audio.filename
         video_path = os.path.join(self.video_path, video_filename)
         audio_path = os.path.join(self.audio_path, audio_filename)
         output_path = os.path.join(self.combined_path, output_filename)
@@ -53,7 +53,7 @@ class ContentProcessor:
                 f"File duration is shorter than the chunk duration: {duration} < {chunk_duration}"
             )
 
-        # Split the video into chunks
+        # Split the content into chunks
         num_chunks = int(duration // chunk_duration) + 1
 
         output = []
@@ -62,11 +62,13 @@ class ContentProcessor:
             start_time = i * chunk_duration
             current_duration = min(chunk_duration, duration - start_time)
             if current_duration > 0:
-                filename = filename.split(".")[0]
-                output_file = os.path.join(output_path, f"{filename}_{i:03d}.mp4")
+                filename_split = filename.split(".")
+                new_filename = f"{filename_split[0]}_{i:03d}.{filename_split[1]}"
+                output_file = os.path.join(output_path, new_filename)
 
-                # Create a copy of the input content and update the details (filepath, duration)
+                # Create a copy of the input content and update the details (filename, filepath, duration)
                 content_chunk = content.copy()
+                content_chunk.filename = new_filename
                 content_chunk.filepath = output_file
                 content_chunk.duration = chunk_duration
 
