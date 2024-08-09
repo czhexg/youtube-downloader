@@ -10,7 +10,8 @@ import time
 import threading
 
 # Local imports
-from content import Video, Audio
+from content import Content, Video, Audio, CombinedContent
+from constants import ContentType
 from processor import ContentProcessor
 
 
@@ -46,7 +47,14 @@ class YouTubeDownloader:
                 time.sleep(1)
         raise Exception(f"Failed to download after {self.retries} attempts.")
 
-    def download_video(self, filename: str = None) -> Video:
+    def download_video(
+        self,
+        filename: str = None,
+        result_container: dict[ContentType, Content] = {
+            ContentType.VIDEO: None,
+            ContentType.AUDIO: None,
+        },
+    ) -> Video:
         """Downloads the highest resolution video stream with avc1 codec"""
         if not filename:
             filename = f"{self.title}_video.mp4"
@@ -67,22 +75,33 @@ class YouTubeDownloader:
                 print(
                     f"Video downloaded successfully: {os.path.join(self.video_path, filename)}"
                 )
-                return Video(
+
+                downloaded_video = Video(
                     title=self.title,
                     description=self.yt.description,
                     creator=self.yt.author,
                     duration=self.yt.length,
+                    filename=filename,
                     filepath=os.path.join(self.video_path, filename),
                     thumbnail=self.yt.thumbnail_url,
                     resolution=video_stream.resolution,
                 )
+                result_container[ContentType.VIDEO] = downloaded_video
+                return downloaded_video
 
             except Exception as e:
                 print(f"Failed to download video: {e}")
         else:
             print("No video stream found.")
 
-    def download_audio(self, filename: str = None) -> Audio:
+    def download_audio(
+        self,
+        filename: str = None,
+        result_container: dict[ContentType, Content] = {
+            ContentType.VIDEO: None,
+            ContentType.AUDIO: None,
+        },
+    ) -> Audio:
         """Downloads the highest quality audio stream"""
         if not filename:
             filename = f"{self.title}_audio.mp3"
@@ -101,25 +120,36 @@ class YouTubeDownloader:
                     f"Audio downloaded successfully: {os.path.join(self.audio_path, filename)}"
                 )
 
-                return Audio(
+                downloaded_audio = Audio(
                     title=self.title,
                     description=self.yt.description,
                     creator=self.yt.author,
                     duration=self.yt.length,
+                    filename=filename,
                     filepath=os.path.join(self.audio_path, filename),
                     thumbnail=self.yt.thumbnail_url,
                     bitrate=audio_stream.abr,
                 )
+                result_container[ContentType.AUDIO] = downloaded_audio
+                return downloaded_audio
 
             except Exception as e:
                 print(f"Failed to download audio: {e}")
         else:
             print("No audio stream found.")
 
-    def download_both(self):
+    def download_both(self) -> dict:
         """Downloads both video and audio using threading"""
-        video_thread = threading.Thread(target=self.download_video)
-        audio_thread = threading.Thread(target=self.download_audio)
+        result_container: dict[ContentType, Content] = {
+            ContentType.VIDEO: None,
+            ContentType.AUDIO: None,
+        }
+        video_thread = threading.Thread(
+            target=self.download_video, kwargs={"result_container": result_container}
+        )
+        audio_thread = threading.Thread(
+            target=self.download_audio, kwargs={"result_container": result_container}
+        )
 
         # Start threads
         video_thread.start()
@@ -129,23 +159,57 @@ class YouTubeDownloader:
         video_thread.join()
         audio_thread.join()
 
-    def handle_download(self, choice: str):
-        """Handles the user's download choice"""
-        if choice == "v":
-            self.download_video()
-        elif choice == "a":
-            self.download_audio()
-        elif choice == "b":
-            self.download_both()
-        elif choice == "c":
-            self.download_both()
+        return result_container
 
-            # Combine audio and video
-            video_filename = f"{self.title}_video.mp4"
-            audio_filename = f"{self.title}_audio.mp3"
-            output_filename = f"{self.title}_combined.mp4"
-            self.processor.combine_audio_video(
-                video_filename, audio_filename, output_filename
-            )
+    def handle_download(
+        self, choice: str, to_split: bool = False, chunk_duration: int = 0
+    ):
+        """Handles the user's download choice. If combined is chosen and to_split is True, the content will be split into chunks before combining."""
+        downloaded_content: dict[ContentType, Content] = {
+            ContentType.VIDEO: None,
+            ContentType.AUDIO: None,
+        }
+        if choice == "v":
+            downloaded_content[ContentType.VIDEO] = self.download_video()
+        elif choice == "a":
+            downloaded_content[ContentType.AUDIO] = self.download_audio()
+        elif choice == "b" or choice == "c":
+            downloaded_content = self.download_both()
         else:
             print("Invalid choice. Exiting.")
+            return
+
+        if to_split:
+            # check if chunk_duration is greater than the video duration
+            if chunk_duration > self.yt.length:
+                print(
+                    "Chunk duration is greater than video duration. Content will not be split."
+                )
+            else:
+                # split the video and audio files into chunks if the content is not None
+                if downloaded_content[ContentType.VIDEO]:
+                    video_chunks = self.processor.split_content(
+                        chunk_duration, downloaded_content[ContentType.VIDEO]
+                    )
+                if downloaded_content[ContentType.AUDIO]:
+                    audio_chunks = self.processor.split_content(
+                        chunk_duration, downloaded_content[ContentType.AUDIO]
+                    )
+
+        if choice == "c":
+            if to_split:
+                # todo: loop through all the files returned after splitting and combine the video chunk with the corresponding audio chunk
+                i = 0
+                for video_chunk, audio_chunk in zip(video_chunks, audio_chunks):
+                    self.processor.combine_audio_video(
+                        video_chunk,
+                        audio_chunk,
+                        f"{video_chunk.title}_combined{i:03d}.mp4",
+                    )
+                    i += 1
+            else:
+                self.processor.combine_audio_video(
+                    downloaded_content[ContentType.VIDEO],
+                    downloaded_content[ContentType.AUDIO],
+                    f"{self.title}_combined.mp4",
+                )
