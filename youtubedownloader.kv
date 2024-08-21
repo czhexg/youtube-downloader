@@ -1,0 +1,77 @@
+<Label>:
+    color: 0, 0, 0, 1  # Set all Label text to black by default
+
+<YouTubeDownloaderGUI>:
+    orientation: 'vertical'
+
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1  # White background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
+    orientation: 'vertical'
+    padding: 10
+    spacing: 10
+
+    # Top Section - URL Input
+    TextInput:
+        id: url_input
+        hint_text: "Enter YouTube Video/Playlist URL"
+        size_hint_y: 0.1
+
+    Button:
+        text: "Analyze"
+        size_hint_y: 0.1
+        on_press: root.analyze()
+
+    # Middle Section - Video/Playlist Details
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: 0.3
+
+        Image:
+            id: thumbnail
+            source: root.video_thumbnail
+            size_hint_x: 0.3
+
+        Label:
+            id: details_info
+            text: "Title: \nChannel: \nDuration: "
+            halign: 'left'
+            valign: 'top'
+            size_hint_x: 0.7
+            text_size: self.size
+
+    # Format Selection
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 0.2
+
+        Label:
+            text: "Select Format:"
+
+        Spinner:
+            id: format_spinner
+            text: "Select Format"
+            values: ["Video (No Sound)", "Audio Only", "Both Separately", "Combined (Video with Audio)"]
+            size_hint_y: None
+            height: 44
+
+    # Bottom Section - Download Controls
+    Button:
+        text: "Download"
+        size_hint_y: 0.1
+        on_press: root.download()
+
+    ProgressBar:
+        id: progress_bar
+        max: 100
+        value: 0
+        size_hint_y: 0.1
+
+    Label:
+        id: status_label
+        text: "Status: Ready"
+        size_hint_y: 0.1
